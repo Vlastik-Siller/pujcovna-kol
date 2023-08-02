@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Půjčovna</title>
+</head>
+<body>
+    <h1>Půjčovna</h1>
+    <form name="typ_kola_pocet" action="">
+        <fieldset>
+            <legend>Typ kola a počet</legend>
+            <label>
+                <input type="checkbox" id="checkbox_detske" onclick="toggleInput('checkbox_detske')" value="200" />
+                Dětské 200 Kč/den => Počet kol: <input type="number" id="inputNumber_detske" min="0" disabled />
+            </label><br>
+            <label>
+                <input type="checkbox" id="checkbox_horske" onclick="toggleInput('checkbox_horske')" value="500" />
+                Horské 500 Kč/den => Počet kol: <input type="number" id="inputNumber_horske" min="0" disabled />
+            </label><br>
+            <label>
+                <input type="checkbox" id="checkbox_silnicni" onclick="toggleInput('checkbox_silnicni')" value="1500" />
+                Silniční 1 500 Kč/den => Počet kol: <input type="number" id="inputNumber_silnicni" min="0" disabled />
+            </label><br>
+            <label>
+                <input type="checkbox" id="checkbox_gravel" onclick="toggleInput('checkbox_gravel')" value="2500" />
+                Gravel 2 500 Kč/den => Počet kol: <input type="number" id="inputNumber_gravel" min="0" disabled />
+            </label>            
+        </fieldset> <br>
+        <fieldset>
+            <legend>Počet dnů zápůjčky:</legend>
+            <label>
+                <select id="selectDays" onchange="toggleInput()">
+                    <option value="0">Vyberte</option>
+                    <option value="5">5 dnů</option>
+                    <option value="7">Týden</option>
+                    <option value="14">14 dní</option>
+                    <option value="30">Měsíc</option>
+                </select>
+            </label>
+        </fieldset><br>
+        <fieldset>
+            <legend>Cyklonosič:</legend>
+            <label>
+                <input type="radio" name="cyklonosic" value="neni" onclick="toggleCyklonosic('neni')" checked />Není třeba cyklonosič (žádný příplatek)<br>
+                <input type="radio" name="cyklonosic" value="stresni" onclick="toggleCyklonosic('stresni')" />Střešní (+ 5 % z ceny zápůjčky navíc)<br>
+                <input type="radio" name="cyklonosic" value="tazne" onclick="toggleCyklonosic('tazne')" />Tažné zařízení (+ 10 % z ceny zápůjčky navíc)<br>
+            </label>
+        </fieldset><br>
+        <fieldset>
+            <legend>Rozpočet:</legend>
+            <label>                
+                <input type="number" id="celkovaCena" min="0" />
+            </label>
+        </fieldset><br>
+        <fieldset>
+            <legend>Kontaktní email:</legend>
+            <label>
+                <input type="email" id="email" required />
+            </label><br><br>
+            <button type="button" onclick="spocitejCelkovouCenu()">Spočítat</button>
+            <button type="submit" onclick="odeslatFormular()">Odeslat</button>
+        </fieldset>                   
+    </form>
+    
+    
+    <!--//validace počtu kol a počtu dnů zápůjčky-->      
+    <script>
+        function toggleInput(checkboxId) {
+          const checkbox = document.getElementById(checkboxId);
+          const inputNumber = document.getElementById("inputNumber_" + checkboxId.split("_")[1]);
+          const selectDays = document.getElementById("selectDays");
+          inputNumber.disabled = checkbox.checked ? false : true;
+      
+          if (!checkbox.checked || selectDays.value === "0") {
+            inputNumber.value = "";
+          }
+        }
+    </script>
+
+<script>
+    let cyklonosicCenaPristatek = 0; // Výchozí hodnota příplatku za cyklonosič
+
+    function spocitejCelkovouCenu() {
+        const checkboxDetske = document.getElementById("checkbox_detske");
+        const checkboxHorske = document.getElementById("checkbox_horske");
+        const checkboxSilnicni = document.getElementById("checkbox_silnicni");
+        const checkboxGravel = document.getElementById("checkbox_gravel");
+
+        const inputNumberDetske = document.getElementById("inputNumber_detske");
+        const inputNumberHorske = document.getElementById("inputNumber_horske");
+        const inputNumberSilnicni = document.getElementById("inputNumber_silnicni");
+        const inputNumberGravel = document.getElementById("inputNumber_gravel");
+
+        const pocetKolDetske = parseInt(inputNumberDetske.value) || 0;
+        const pocetKolHorske = parseInt(inputNumberHorske.value) || 0;
+        const pocetKolSilnicni = parseInt(inputNumberSilnicni.value) || 0;
+        const pocetKolGravel = parseInt(inputNumberGravel.value) || 0;
+
+        const cenaDetske = parseInt(checkboxDetske.value);
+        const cenaHorske = parseInt(checkboxHorske.value);
+        const cenaSilnicni = parseInt(checkboxSilnicni.value);
+        const cenaGravel = parseInt(checkboxGravel.value);
+
+        let celkovaCena = (cenaDetske * pocetKolDetske) + (cenaHorske * pocetKolHorske) + (cenaSilnicni * pocetKolSilnicni) + (cenaGravel * pocetKolGravel);
+
+        const selectDays = document.getElementById("selectDays");
+        const pocetDnu = parseInt(selectDays.value);
+
+        if (pocetDnu === 0 || isNaN(pocetDnu)) {
+            alert("Vyberte prosím počet dnů zápůjčky.");
+            return;
+        }
+
+        celkovaCena *= pocetDnu;
+
+        // Přidáme příplatek za cyklonosič
+        celkovaCena += celkovaCena * cyklonosicCenaPristatek / 100;
+
+        const rozpocetInput = document.getElementById("celkovaCena");
+        const rozpocet = parseInt(rozpocetInput.value);
+
+        if (isNaN(rozpocet)) {
+            alert("Zadejte platnou hodnotu rozpočtu.");
+            return;
+        }
+
+        if (celkovaCena > rozpocet) {
+            alert("Překročili jste uvedený rozpočet.");
+            return;
+        }
+
+        alert(`Celková cena: ${celkovaCena} Kč`);
+    }
+
+    function toggleCyklonosic(cyklonosic) {
+        if (cyklonosic === "stresni") {
+            cyklonosicCenaPristatek = 5;
+        } else if (cyklonosic === "tazne") {
+            cyklonosicCenaPristatek = 10;
+        } else {
+            cyklonosicCenaPristatek = 0;
+        }
+    }
+</script>
+</body>
+</html>
